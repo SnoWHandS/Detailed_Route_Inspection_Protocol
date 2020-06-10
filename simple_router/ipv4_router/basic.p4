@@ -3,7 +3,9 @@
 #include <v1model.p4>
 
 const bit<16> TYPE_IPV4 = 0x800;
+const bit<5>  IPV4_OPTION_DRIP = 13;
 
+#define HOPS 9
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
 *************************************************************************/
@@ -11,6 +13,11 @@ const bit<16> TYPE_IPV4 = 0x800;
 typedef bit<9>  egressSpec_t;
 typedef bit<48> macAddr_t;
 typedef bit<32> ip4Addr_t;
+
+//DRIP types
+typedef bit<32> switchID_t;
+typedef bit<32> qdepth_t;
+typedef bit<32> qtdelta_t;
 
 header ethernet_t {
     macAddr_t dstAddr;
@@ -33,13 +40,49 @@ header ipv4_t {
     ip4Addr_t dstAddr;
 }
 
-struct metadata {
-    /* empty */
+
+//Create header to store ipv4 options fields
+header ipv4_option_t {
+    bit<1> copyFlag;
+    bit<2> optClass;
+    bit<5> option;
+    bit<8> optionLength;
 }
 
+//Header for holding a counter
+header drip_t {
+    bit<16>  count;
+}
+
+//Header for holding DRIP switch metadata
+header switch_t {
+    switchID_t  swid;
+    qdepth_t    qdepth;
+    qtdelta_t   qtdelta;
+}
+
+
+//Store incoming count value
+struct ingress_metadata_t {
+    bit<16>  count;
+}
+//Store remaining values
+struct parser_metadata_t {
+    bit<16>  remaining;
+}
+//Hold all the metadatas in the metadata struct
+struct metadata {
+    ingress_metadata_t   ingress_metadata;
+    parser_metadata_t   parser_metadata;
+}
+
+//Hold all the headers in the headers struct
 struct headers {
-    ethernet_t   ethernet;
-    ipv4_t       ipv4;
+    ethernet_t      ethernet;
+    ipv4_t          ipv4;
+    ipv4_option_t   ipv4_option;
+    drip_t          drip;
+    switch_t[HOPS]  swtraces;
 }
 
 /*************************************************************************
@@ -52,7 +95,7 @@ parser MyParser(packet_in packet,
                 inout standard_metadata_t standard_metadata) {
 
     state start {
-        /* TODO: add parser logic */
+        //Pull in the ethernet packet
         transition parse_Eth;
     }
     
@@ -66,8 +109,45 @@ parser MyParser(packet_in packet,
 
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
-        transition accept;
+        //Detect if the IPv4 Options field contains data
+        transition select(hdr.ipv4.ihl){
+            5           : accept;
+            default     : parse_ipv4_option;
+        }
     }
+
+    //Handle the IPv4 Options header
+    state parse_ipv4_option {
+        packet.extract(hdr.ipv4_option);
+        //Detect if Options filed indicates drip packet
+        transition select(hdr.ipv4_option.option) {
+            //If it does have DRIP information
+            IPV4_OPTION_DRIP: parse_drip;
+            default: accept;
+        }
+    }
+
+    //Handle the DRIP header
+    state parse_drip {
+        packet.extract(hdr.drip);
+        //Extract the count field
+        meta.parser_metadata.remaining = hdr.drip.count;
+        //If 0 counts remaining, move on, else; decrement and move on
+        transition select(meta.parser_metadata.remaining) {
+            0 : accept;
+            default: parse_swtrace;
+        }
+    }
+
+    //Handle the count remain handles
+    state parse_swtrace {
+        packet.extract(hdr.swtraces.next);
+        meta.parser_metadata.remaining = meta.parser_metadata.remaining  - 1;
+        transition select(meta.parser_metadata.remaining) {
+            0 : accept;
+            default: parse_swtrace;
+        }
+    }    
 }
 
 
@@ -114,13 +194,10 @@ control MyIngress(inout headers hdr,
             NoAction;
         }
         size = 1024;
-        default_action = drop();
+        default_action = NoAction();
     }
     
     apply {
-        /* TODO: fix ingress control logic
-         *  - ipv4_lpm should be applied only when IPv4 header is valid
-         */
         if (hdr.ipv4.isValid()){
             ipv4_lpm.apply();
         }
@@ -134,7 +211,34 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
-    apply {  }
+    action add_swtrace(switchID_t swid){
+        //Increment the drip count field
+        hdr.drip.count = hdr.drip.count+1;
+        hdr.swtraces.push_front(1);
+        hdr.swtraces[0].setValid();
+        //Assign metadata to fields
+        hdr.swtraces[0].swid = swid;
+        hdr.swtraces[0].qdepth = (qdepth_t)standard_metadata.deq_qdepth;
+        hdr.swtraces[0].qtdelta = (qtdelta_t)standard_metadata.deq_timedelta;
+
+        //Adjust header size counts and lengths
+        hdr.ipv4.ihl = hdr.ipv4.ihl+3;  //Added 3 fields
+        hdr.ipv4_option.optionLength = hdr.ipv4_option.optionLength + 12; //4*3 = 12
+       	hdr.ipv4.totalLen = hdr.ipv4.totalLen + 12;
+    }
+
+    table swtrace {
+        actions = {
+            add_swtrace;
+            NoAction;
+        }
+        default_action = NoAction();
+    }
+    apply{
+        if (hdr.drip.isValid()){
+            swtrace.apply();
+        }
+    }
 }
 
 /*************************************************************************
@@ -168,9 +272,12 @@ control MyComputeChecksum(inout headers hdr, inout metadata meta) {
 
 control MyDeparser(packet_out packet, in headers hdr) {
     apply {
-        /* TODO: add deparser logic */
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
+        //Need to additionally emit all the other fields we parsed
+        packet.emit(hdr.ipv4_option);
+        packet.emit(hdr.drip);
+        packet.emit(hdr.swtraces);  
     }
 }
 

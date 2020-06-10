@@ -3,7 +3,10 @@
     {
       "name" : "scalars_0",
       "id" : 0,
-      "fields" : []
+      "fields" : [
+        ["metadata._ingress_metadata_count0", 16, false],
+        ["metadata._parser_metadata_remaining1", 16, false]
+      ]
     },
     {
       "name" : "standard_metadata",
@@ -54,6 +57,32 @@
         ["srcAddr", 32, false],
         ["dstAddr", 32, false]
       ]
+    },
+    {
+      "name" : "ipv4_option_t",
+      "id" : 4,
+      "fields" : [
+        ["copyFlag", 1, false],
+        ["optClass", 2, false],
+        ["option", 5, false],
+        ["optionLength", 8, false]
+      ]
+    },
+    {
+      "name" : "drip_t",
+      "id" : 5,
+      "fields" : [
+        ["count", 16, false]
+      ]
+    },
+    {
+      "name" : "switch_t",
+      "id" : 6,
+      "fields" : [
+        ["swid", 32, false],
+        ["qdepth", 32, false],
+        ["qtdelta", 32, false]
+      ]
     }
   ],
   "headers" : [
@@ -84,9 +113,94 @@
       "header_type" : "ipv4_t",
       "metadata" : false,
       "pi_omit" : true
+    },
+    {
+      "name" : "ipv4_option",
+      "id" : 4,
+      "header_type" : "ipv4_option_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "drip",
+      "id" : 5,
+      "header_type" : "drip_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[0]",
+      "id" : 6,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[1]",
+      "id" : 7,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[2]",
+      "id" : 8,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[3]",
+      "id" : 9,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[4]",
+      "id" : 10,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[5]",
+      "id" : 11,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[6]",
+      "id" : 12,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[7]",
+      "id" : 13,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "swtraces[8]",
+      "id" : 14,
+      "header_type" : "switch_t",
+      "metadata" : false,
+      "pi_omit" : true
     }
   ],
-  "header_stacks" : [],
+  "header_stacks" : [
+    {
+      "name" : "swtraces",
+      "id" : 0,
+      "header_type" : "switch_t",
+      "size" : 9,
+      "header_ids" : [6, 7, 8, 9, 10, 11, 12, 13, 14]
+    }
+  ],
   "header_union_types" : [],
   "header_unions" : [],
   "header_union_stacks" : [],
@@ -157,12 +271,174 @@
           ],
           "transitions" : [
             {
+              "type" : "hexstr",
+              "value" : "0x05",
+              "mask" : null,
+              "next_state" : null
+            },
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : "parse_ipv4_option"
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "ihl"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_ipv4_option",
+          "id" : 2,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "ipv4_option"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "hexstr",
+              "value" : "0x0d",
+              "mask" : null,
+              "next_state" : "parse_drip"
+            },
+            {
               "value" : "default",
               "mask" : null,
               "next_state" : null
             }
           ],
-          "transition_key" : []
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4_option", "option"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_drip",
+          "id" : 3,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "drip"
+                }
+              ],
+              "op" : "extract"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "metadata._parser_metadata_remaining1"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["drip", "count"]
+                }
+              ],
+              "op" : "set"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "hexstr",
+              "value" : "0x0000",
+              "mask" : null,
+              "next_state" : null
+            },
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : "parse_swtrace"
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["drip", "count"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_swtrace",
+          "id" : 4,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "stack",
+                  "value" : "swtraces"
+                }
+              ],
+              "op" : "extract"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "metadata._parser_metadata_remaining1"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "+",
+                          "left" : {
+                            "type" : "field",
+                            "value" : ["scalars", "metadata._parser_metadata_remaining1"]
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xffff"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "hexstr",
+              "value" : "0x0000",
+              "mask" : null,
+              "next_state" : null
+            },
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : "parse_swtrace"
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "metadata._parser_metadata_remaining1"]
+            }
+          ]
         }
       ]
     }
@@ -174,11 +450,11 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 169,
+        "line" : 273,
         "column" : 8,
         "source_fragment" : "MyDeparser"
       },
-      "order" : ["ethernet", "ipv4"],
+      "order" : ["ethernet", "ipv4", "ipv4_option", "drip", "swtraces[0]", "swtraces[1]", "swtraces[2]", "swtraces[3]", "swtraces[4]", "swtraces[5]", "swtraces[6]", "swtraces[7]", "swtraces[8]"],
       "primitives" : []
     }
   ],
@@ -191,7 +467,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 146,
+        "line" : 250,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },
@@ -267,7 +543,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 91,
+            "line" : 171,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -302,7 +578,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 98,
+            "line" : 178,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port"
           }
@@ -321,7 +597,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 100,
+            "line" : 180,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dstAddr = dstAddr"
           }
@@ -340,7 +616,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 100,
+            "line" : 180,
             "column" : 31,
             "source_fragment" : "dstAddr; ..."
           }
@@ -382,9 +658,299 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 104,
+            "line" : 184,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "NoAction",
+      "id" : 3,
+      "runtime_data" : [],
+      "primitives" : []
+    },
+    {
+      "name" : "MyEgress.add_swtrace",
+      "id" : 4,
+      "runtime_data" : [
+        {
+          "name" : "swid",
+          "bitwidth" : 32
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["drip", "count"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["drip", "count"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x0001"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 216,
+            "column" : 8,
+            "source_fragment" : "hdr.drip.count = hdr.drip.count+1"
+          }
+        },
+        {
+          "op" : "push",
+          "parameters" : [
+            {
+              "type" : "header_stack",
+              "value" : "swtraces"
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x1"
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 217,
+            "column" : 8,
+            "source_fragment" : "hdr.swtraces.push_front(1)"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "swtraces[0]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 218,
+            "column" : 8,
+            "source_fragment" : "hdr.swtraces[0].setValid()"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["swtraces[0]", "swid"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 220,
+            "column" : 8,
+            "source_fragment" : "hdr.swtraces[0].swid = swid"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["swtraces[0]", "qdepth"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "deq_qdepth"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 221,
+            "column" : 8,
+            "source_fragment" : "hdr.swtraces[0].qdepth = (qdepth_t)standard_metadata.deq_qdepth"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["swtraces[0]", "qtdelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 222,
+            "column" : 8,
+            "source_fragment" : "hdr.swtraces[0].qtdelta = (qtdelta_t)standard_metadata.deq_timedelta"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "ihl"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4", "ihl"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x03"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x0f"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 225,
+            "column" : 8,
+            "source_fragment" : "hdr.ipv4.ihl = hdr.ipv4.ihl+3"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4_option", "optionLength"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4_option", "optionLength"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x0c"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 226,
+            "column" : 8,
+            "source_fragment" : "hdr.ipv4_option.optionLength = hdr.ipv4_option.optionLength + 12"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "totalLen"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4", "totalLen"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x000c"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 227,
+            "column" : 8,
+            "source_fragment" : "hdr.ipv4.totalLen = hdr.ipv4.totalLen + 12"
           }
         }
       ]
@@ -396,7 +962,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 87,
+        "line" : 167,
         "column" : 8,
         "source_fragment" : "MyIngress"
       },
@@ -407,7 +973,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 107,
+            "line" : 187,
             "column" : 10,
             "source_fragment" : "ipv4_lpm"
           },
@@ -434,7 +1000,7 @@
             "NoAction" : null
           },
           "default_entry" : {
-            "action_id" : 1,
+            "action_id" : 0,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -448,7 +1014,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 124,
+            "line" : 201,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -473,14 +1039,69 @@
       "id" : 1,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 134,
+        "line" : 211,
         "column" : 8,
         "source_fragment" : "MyEgress"
       },
-      "init_table" : null,
-      "tables" : [],
+      "init_table" : "node_6",
+      "tables" : [
+        {
+          "name" : "MyEgress.swtrace",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 230,
+            "column" : 10,
+            "source_fragment" : "swtrace"
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [4, 3],
+          "actions" : ["MyEgress.add_swtrace", "NoAction"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "MyEgress.add_swtrace" : null,
+            "NoAction" : null
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        }
+      ],
       "action_profiles" : [],
-      "conditionals" : []
+      "conditionals" : [
+        {
+          "name" : "node_6",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 238,
+            "column" : 12,
+            "source_fragment" : "hdr.drip.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "d2b",
+              "left" : null,
+              "right" : {
+                "type" : "field",
+                "value" : ["drip", "$valid$"]
+              }
+            }
+          },
+          "false_next" : null,
+          "true_next" : "MyEgress.swtrace"
+        }
+      ]
     }
   ],
   "checksums" : [
@@ -489,7 +1110,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 146,
+        "line" : 250,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },

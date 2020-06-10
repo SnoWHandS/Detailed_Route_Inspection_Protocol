@@ -24,6 +24,20 @@ tables {
   }
   size: 1024
 }
+tables {
+  preamble {
+    id: 33608327
+    name: "MyEgress.swtrace"
+    alias: "swtrace"
+  }
+  action_refs {
+    id: 16840445
+  }
+  action_refs {
+    id: 16800567
+  }
+  size: 1024
+}
 actions {
   preamble {
     id: 16800567
@@ -53,6 +67,18 @@ actions {
     id: 2
     name: "port"
     bitwidth: 9
+  }
+}
+actions {
+  preamble {
+    id: 16840445
+    name: "MyEgress.add_swtrace"
+    alias: "add_swtrace"
+  }
+  params {
+    id: 1
+    name: "swid"
+    bitwidth: 32
   }
 }
 type_info {

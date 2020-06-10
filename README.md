@@ -1,7 +1,6 @@
-# eee4121f-b-lab2
+# Detailed Route Inspection Protocol simulation
 
-Protocol design project for EEE4121F-B
-
+A protocol design project for EEE4121F-B
 Dillon Heald - HLDDIL001
 
 ## Execution
