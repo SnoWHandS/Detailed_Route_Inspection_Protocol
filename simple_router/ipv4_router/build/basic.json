@@ -4,8 +4,10 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
+        ["tmp", 1, false],
         ["metadata._ingress_metadata_count0", 16, false],
-        ["metadata._parser_metadata_remaining1", 16, false]
+        ["metadata._parser_metadata_remaining1", 16, false],
+        ["_padding_0", 7, false]
       ]
     },
     {
@@ -69,7 +71,7 @@
       ]
     },
     {
-      "name" : "drip_t",
+      "name" : "mri_t",
       "id" : 5,
       "fields" : [
         ["count", 16, false]
@@ -122,9 +124,9 @@
       "pi_omit" : true
     },
     {
-      "name" : "drip",
+      "name" : "mri",
       "id" : 5,
-      "header_type" : "drip_t",
+      "header_type" : "mri_t",
       "metadata" : false,
       "pi_omit" : true
     },
@@ -212,7 +214,8 @@
     ["StackOutOfBounds", 4],
     ["HeaderTooShort", 5],
     ["ParserTimeout", 6],
-    ["ParserInvalidArgument", 7]
+    ["ParserInvalidArgument", 7],
+    ["IPHeaderTooShort", 8]
   ],
   "enums" : [],
   "parsers" : [
@@ -267,6 +270,59 @@
                 }
               ],
               "op" : "extract"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "b2d",
+                      "left" : null,
+                      "right" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : ">=",
+                          "left" : {
+                            "type" : "field",
+                            "value" : ["ipv4", "ihl"]
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0x05"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "op" : "d2b",
+                    "left" : null,
+                    "right" : {
+                      "type" : "field",
+                      "value" : ["scalars", "tmp"]
+                    }
+                  }
+                },
+                {
+                  "type" : "hexstr",
+                  "value" : "0x8"
+                }
+              ],
+              "op" : "verify"
             }
           ],
           "transitions" : [
@@ -308,7 +364,7 @@
               "type" : "hexstr",
               "value" : "0x0d",
               "mask" : null,
-              "next_state" : "parse_drip"
+              "next_state" : "parse_mri"
             },
             {
               "value" : "default",
@@ -324,14 +380,14 @@
           ]
         },
         {
-          "name" : "parse_drip",
+          "name" : "parse_mri",
           "id" : 3,
           "parser_ops" : [
             {
               "parameters" : [
                 {
                   "type" : "regular",
-                  "value" : "drip"
+                  "value" : "mri"
                 }
               ],
               "op" : "extract"
@@ -344,7 +400,7 @@
                 },
                 {
                   "type" : "field",
-                  "value" : ["drip", "count"]
+                  "value" : ["mri", "count"]
                 }
               ],
               "op" : "set"
@@ -366,7 +422,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["drip", "count"]
+              "value" : ["mri", "count"]
             }
           ]
         },
@@ -450,11 +506,11 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 273,
+        "line" : 255,
         "column" : 8,
         "source_fragment" : "MyDeparser"
       },
-      "order" : ["ethernet", "ipv4", "ipv4_option", "drip", "swtraces[0]", "swtraces[1]", "swtraces[2]", "swtraces[3]", "swtraces[4]", "swtraces[5]", "swtraces[6]", "swtraces[7]", "swtraces[8]"],
+      "order" : ["ethernet", "ipv4", "ipv4_option", "mri", "swtraces[0]", "swtraces[1]", "swtraces[2]", "swtraces[3]", "swtraces[4]", "swtraces[5]", "swtraces[6]", "swtraces[7]", "swtraces[8]"],
       "primitives" : []
     }
   ],
@@ -467,7 +523,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 250,
+        "line" : 233,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },
@@ -543,7 +599,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 171,
+            "line" : 158,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -578,9 +634,28 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 178,
+            "line" : 162,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "srcAddr"]
+            },
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "basic.p4",
+            "line" : 163,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.srcAddr = hdr.ethernet.dstAddr"
           }
         },
         {
@@ -597,28 +672,9 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 180,
+            "line" : 164,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dstAddr = dstAddr"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "srcAddr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "basic.p4",
-            "line" : 180,
-            "column" : 31,
-            "source_fragment" : "dstAddr; ..."
           }
         },
         {
@@ -658,7 +714,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 184,
+            "line" : 165,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -686,7 +742,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["drip", "count"]
+              "value" : ["mri", "count"]
             },
             {
               "type" : "expression",
@@ -700,7 +756,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["drip", "count"]
+                        "value" : ["mri", "count"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -718,9 +774,9 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 216,
+            "line" : 196,
             "column" : 8,
-            "source_fragment" : "hdr.drip.count = hdr.drip.count+1"
+            "source_fragment" : "hdr.mri.count = hdr.mri.count + 1"
           }
         },
         {
@@ -737,7 +793,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 217,
+            "line" : 197,
             "column" : 8,
             "source_fragment" : "hdr.swtraces.push_front(1)"
           }
@@ -752,7 +808,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 218,
+            "line" : 202,
             "column" : 8,
             "source_fragment" : "hdr.swtraces[0].setValid()"
           }
@@ -771,7 +827,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 220,
+            "line" : 203,
             "column" : 8,
             "source_fragment" : "hdr.swtraces[0].swid = swid"
           }
@@ -803,7 +859,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 221,
+            "line" : 204,
             "column" : 8,
             "source_fragment" : "hdr.swtraces[0].qdepth = (qdepth_t)standard_metadata.deq_qdepth"
           }
@@ -822,7 +878,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 222,
+            "line" : 205,
             "column" : 8,
             "source_fragment" : "hdr.swtraces[0].qtdelta = (qtdelta_t)standard_metadata.deq_timedelta"
           }
@@ -864,9 +920,9 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 225,
+            "line" : 207,
             "column" : 8,
-            "source_fragment" : "hdr.ipv4.ihl = hdr.ipv4.ihl+3"
+            "source_fragment" : "hdr.ipv4.ihl = hdr.ipv4.ihl + 3"
           }
         },
         {
@@ -906,7 +962,7 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 226,
+            "line" : 208,
             "column" : 8,
             "source_fragment" : "hdr.ipv4_option.optionLength = hdr.ipv4_option.optionLength + 12"
           }
@@ -948,8 +1004,8 @@
           ],
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 227,
-            "column" : 8,
+            "line" : 209,
+            "column" : 1,
             "source_fragment" : "hdr.ipv4.totalLen = hdr.ipv4.totalLen + 12"
           }
         }
@@ -962,7 +1018,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 167,
+        "line" : 154,
         "column" : 8,
         "source_fragment" : "MyIngress"
       },
@@ -973,7 +1029,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 187,
+            "line" : 168,
             "column" : 10,
             "source_fragment" : "ipv4_lpm"
           },
@@ -1014,7 +1070,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 201,
+            "line" : 182,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -1039,7 +1095,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 211,
+        "line" : 192,
         "column" : 8,
         "source_fragment" : "MyEgress"
       },
@@ -1050,7 +1106,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 230,
+            "line" : 212,
             "column" : 10,
             "source_fragment" : "swtrace"
           },
@@ -1083,9 +1139,9 @@
           "id" : 1,
           "source_info" : {
             "filename" : "basic.p4",
-            "line" : 238,
+            "line" : 221,
             "column" : 12,
-            "source_fragment" : "hdr.drip.isValid()"
+            "source_fragment" : "hdr.mri.isValid()"
           },
           "expression" : {
             "type" : "expression",
@@ -1094,7 +1150,7 @@
               "left" : null,
               "right" : {
                 "type" : "field",
-                "value" : ["drip", "$valid$"]
+                "value" : ["mri", "$valid$"]
               }
             }
           },
@@ -1110,7 +1166,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 250,
+        "line" : 233,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },

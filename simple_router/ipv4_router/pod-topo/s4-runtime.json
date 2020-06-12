@@ -4,10 +4,12 @@
   "bmv2_json": "build/basic.json",
   "table_entries": [
     {
-      "table": "MyIngress.ipv4_lpm",
+      "table": "MyEgress.swtrace",
       "default_action": true,
-      "action_name": "MyIngress.drop",
-      "action_params": { }
+      "action_name": "MyEgress.add_swtrace",
+      "action_params": {
+        "swid": 4
+      }
     },
     {
       "table": "MyIngress.ipv4_lpm",

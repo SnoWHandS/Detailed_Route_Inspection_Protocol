@@ -1,10 +1,10 @@
 
-[2020-06-10 18:38:02.996] /p4.v1.P4Runtime/SetForwardingPipelineConfig
+[2020-06-12 12:42:19.421] /p4.v1.P4Runtime/SetForwardingPipelineConfig
 ---
-Message too long (34854 bytes)! Skipping log...
+Message too long (36757 bytes)! Skipping log...
 ---
 
-[2020-06-10 18:38:03.018] /p4.v1.P4Runtime/Write
+[2020-06-12 12:42:19.442] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -13,10 +13,14 @@ updates {
   type: MODIFY
   entity {
     table_entry {
-      table_id: 33574068
+      table_id: 33608327
       action {
         action {
-          action_id: 16805608
+          action_id: 16840445
+          params {
+            param_id: 1
+            value: "\000\000\000\001"
+          }
         }
       }
       is_default_action: true
@@ -25,7 +29,7 @@ updates {
 }
 ---
 
-[2020-06-10 18:38:03.030] /p4.v1.P4Runtime/Write
+[2020-06-12 12:42:19.453] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -47,6 +51,41 @@ updates {
           action_id: 16799317
           params {
             param_id: 1
+            value: "\010\000\000\000\001\001"
+          }
+          params {
+            param_id: 2
+            value: "\000\002"
+          }
+        }
+      }
+    }
+  }
+}
+---
+
+[2020-06-12 12:42:19.469] /p4.v1.P4Runtime/Write
+---
+election_id {
+  low: 1
+}
+updates {
+  type: INSERT
+  entity {
+    table_entry {
+      table_id: 33574068
+      match {
+        field_id: 1
+        lpm {
+          value: "\n\000\001\013"
+          prefix_len: 32
+        }
+      }
+      action {
+        action {
+          action_id: 16799317
+          params {
+            param_id: 1
             value: "\010\000\000\000\001\021"
           }
           params {
@@ -60,7 +99,7 @@ updates {
 }
 ---
 
-[2020-06-10 18:38:03.052] /p4.v1.P4Runtime/Write
+[2020-06-12 12:42:19.485] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -73,8 +112,8 @@ updates {
       match {
         field_id: 1
         lpm {
-          value: "\n\000\002\002"
-          prefix_len: 32
+          value: "\n\000\002\000"
+          prefix_len: 24
         }
       }
       action {
@@ -82,42 +121,7 @@ updates {
           action_id: 16799317
           params {
             param_id: 1
-            value: "\010\000\000\000\002\""
-          }
-          params {
-            param_id: 2
-            value: "\000\002"
-          }
-        }
-      }
-    }
-  }
-}
----
-
-[2020-06-10 18:38:03.065] /p4.v1.P4Runtime/Write
----
-election_id {
-  low: 1
-}
-updates {
-  type: INSERT
-  entity {
-    table_entry {
-      table_id: 33574068
-      match {
-        field_id: 1
-        lpm {
-          value: "\n\000\003\003"
-          prefix_len: 32
-        }
-      }
-      action {
-        action {
-          action_id: 16799317
-          params {
-            param_id: 1
-            value: "\010\000\000\000\003\000"
+            value: "\010\000\000\000\002\000"
           }
           params {
             param_id: 2
@@ -130,7 +134,7 @@ updates {
 }
 ---
 
-[2020-06-10 18:38:03.069] /p4.v1.P4Runtime/Write
+[2020-06-12 12:42:19.496] /p4.v1.P4Runtime/Write
 ---
 election_id {
   low: 1
@@ -143,8 +147,8 @@ updates {
       match {
         field_id: 1
         lpm {
-          value: "\n\000\004\004"
-          prefix_len: 32
+          value: "\n\000\003\000"
+          prefix_len: 24
         }
       }
       action {
@@ -152,7 +156,7 @@ updates {
           action_id: 16799317
           params {
             param_id: 1
-            value: "\010\000\000\000\004\000"
+            value: "\010\000\000\000\003\000"
           }
           params {
             param_id: 2
