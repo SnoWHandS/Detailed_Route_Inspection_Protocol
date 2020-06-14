@@ -2,12 +2,15 @@
 import sys
 import struct
 import os
+import re
 
 from scapy.all import sniff, sendp, hexdump, get_if_list, get_if_hwaddr
 from scapy.all import Packet, IPOption
 from scapy.all import PacketListField, ShortField, IntField, LongField, BitField, FieldListField, FieldLenField
 from scapy.all import IP, TCP, UDP, Raw
 from scapy.layers.inet import _IPOption_HDR
+
+DRIPdata = []
 
 def get_if():
     ifs=get_if_list()
@@ -20,6 +23,19 @@ def get_if():
         print "Cannot find eth0 interface"
         exit(1)
     return iface
+
+def writeToCSV(DRIPPackets):
+    file = open("./Output/DRIPout.csv", "w")
+    file.write("Switch 2,Switch 1\n")
+
+    #[<IPOption_DRIP  copy_flag=0L optclass=control option=flow_control length=28 count=2 swtraces=[<SwitchTrace  swid=2 qdepth=0 qtdelta=32 |>, <SwitchTrace  swid=1 qdepth=0 qtdelta=46 |>] |>]
+
+
+    for i in range(1,len(DRIPPackets)):
+        #Convert to string
+        DRIPinfo = str(DRIPPackets[i])
+        #write to csv file
+        file.write(str(DRIPinfo[DRIPinfo.find("<SwitchTrace"):-1])+"\n")
 
 #Same classes as in sendDRIP.py
 class SwitchTrace(Packet):
@@ -44,8 +60,13 @@ class IPOption_DRIP(IPOption):
 
 def handle_pkt(pkt):
     print "got a packet"
-    pkt.show2()
-#    hexdump(pkt)
+    if pkt.haslayer(IP):
+        print pkt[IP].options
+        DRIPdata.append(pkt[IP].options)
+    #print pkt.summary()
+    #pkt.show2()     # ###[ UDP ]###
+    #print pkt.sprintf("%IP.options%") #print pkt.sprintf("%IP.options%")
+    #hexdump(pkt)
     sys.stdout.flush()
 
 
@@ -56,6 +77,7 @@ def main():
     sys.stdout.flush()
     sniff(filter="udp and port 4321", iface = iface,
           prn = lambda x: handle_pkt(x))
+    writeToCSV(DRIPdata)
 
 if __name__ == '__main__':
     main()
