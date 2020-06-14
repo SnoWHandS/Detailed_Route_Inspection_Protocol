@@ -61,12 +61,9 @@ class IPOption_DRIP(IPOption):
 def handle_pkt(pkt):
     print "got a packet"
     if pkt.haslayer(IP):
-        print pkt[IP].options
+        #print pkt[IP].options
         DRIPdata.append(pkt[IP].options)
-    #print pkt.summary()
-    #pkt.show2()     # ###[ UDP ]###
-    #print pkt.sprintf("%IP.options%") #print pkt.sprintf("%IP.options%")
-    #hexdump(pkt)
+    pkt.show2()     
     sys.stdout.flush()
 
 
