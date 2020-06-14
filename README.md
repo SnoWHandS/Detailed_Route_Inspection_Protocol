@@ -6,6 +6,9 @@ Author: Dillon Heald - HLDDIL001
 Acknowledgement and reference: A number of items from this project's implementation were adapted from the outputs of the Multi-hop route inspection exercise in P4.
 For further works relating to the source of what this project is based on, please refer to the following P4 tutorial repository [here.](https://github.com/davidcawork/P4Tutorial "P4 Tutorial").
 
+## Pre-requisites
+The project expects a stable installation of mininet version 2.3.0d6.
+
 ## Topology
 The topology to simulate is as follows:
 ![alt text](https://github.com/SnoWHandS/Detailed_Route_Inspection_Protocol/raw/master/simple_router/ipv4_router/triangle-strained-topo/triangletopo.png "Triangle toplogy with strained network link")
