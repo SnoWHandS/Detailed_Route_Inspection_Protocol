@@ -4,7 +4,12 @@ A protocol design project for EEE4121F-B
 Author: Dillon Heald - HLDDIL001
 
 Acknowledgement and reference: A number of items from this project's implementation were adapted from the outputs of the Multi-hop route inspection exercise in P4.
-For further works relating to the source of what this project is based on, please refer to the following P4 tutorial repository [here.](https://github.com/davidcawork/P4Tutorial "P4 Tutorial")
+For further works relating to the source of what this project is based on, please refer to the following P4 tutorial repository [here.](https://github.com/davidcawork/P4Tutorial "P4 Tutorial").
+
+## Topology
+The topology to simulate is as follows:
+![alt text](https://github.com/SnoWHandS/Detailed_Route_Inspection_Protocol/tree/master/simple_router/ipv4_router/triangle-strained-topo/triangletopo.png "Triangle toplogy with strained network link")
+
 
 ## Execution
 To execute, run the "run.sh" script using ```bash sudo ./run.sh ```. This will run the simulation and upon closing the mininet terminal, stop the mininet background session.
