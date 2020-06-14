@@ -8,9 +8,8 @@ For further works relating to the source of what this project is based on, pleas
 
 ## Topology
 The topology to simulate is as follows:
-![alt text](https://github.com/SnoWHandS/Detailed_Route_Inspection_Protocol/tree/master/simple_router/ipv4_router/triangle-strained-topo/triangletopo.png "Triangle toplogy with strained network link")
-
-
+![alt text](https://github.com/SnoWHandS/Detailed_Route_Inspection_Protocol/raw/master/simple_router/ipv4_router/triangle-strained-topo/triangletopo.png "Triangle toplogy with strained network link")
+            
 ## Execution
 To execute, run the "run.sh" script using ```bash sudo ./run.sh ```. This will run the simulation and upon closing the mininet terminal, stop the mininet background session.
 
