@@ -4,10 +4,11 @@ A protocol design project for EEE4121F-B
 Author: Dillon Heald - HLDDIL001
 
 Acknowledgement and reference: A number of items from this project's implementation were adapted from the outputs of the Multi-hop route inspection exercise in P4.
-For further works relating to the source of what this project is based on, please refer to the following P4 tutorial repository [here.](https://github.com/p4lang/tutorials/tree/master/exercises/mri "MRI P4 Tutorial").
+For further works relating to the source of what this project is based on, please refer to the following P4 tutorial repository [here.](https://github.com/p4lang/tutorials/tree/master/exercises/mri "MRI P4 Tutorial")
 
 ## Pre-requisites
-The project expects a stable installation of mininet version 2.3.0d6.
+The project expects a stable installation of mininet version 2.3.0d6 and must be run in an appropriate VM like this one [here.](https://docs.google.com/document/d/e/2PACX-1vRCrkIQte120GZ1ubSjBrM1QJkWvdsVrYrMuRSm9i00JlSHZiUl_otcU9dvEDeaNkMuQiRjf-fKf-ox/pub "EEE4121B-LAB2")
+
 
 ## Topology
 The topology to simulate is as follows:
